@@ -1,5 +1,9 @@
 import { Client, Message, TemplatedMessage } from "postmark";
 import "dotenv/config";
+import {
+  TemplateTypes,
+  CreateTemplateRequest,
+} from "postmark/dist/client/models";
 
 type Config = {
   postmark: {
@@ -41,7 +45,7 @@ class EmailService {
       Subject: email.subject,
       HtmlBody: email.html,
     };
-    this.client.sendEmail(options, (err, result) => {
+    await this.client.sendEmail(options, (err, result) => {
       if (err) {
         console.error(err);
       }
@@ -64,7 +68,16 @@ class EmailService {
       TemplateAlias: email.templateAlias,
       TemplateModel: email.templateModel,
     };
-    this.client.sendEmailWithTemplate(options, (err, result) => {
+    await this.client.sendEmailWithTemplate(options, (err, result) => {
+      if (err) {
+        console.error(err);
+      }
+      console.log(result);
+    });
+  }
+
+  async createTemplate(options: CreateTemplateRequest): Promise<void> {
+    await this.client.createTemplate(options, (err, result) => {
       if (err) {
         console.error(err);
       }
@@ -112,9 +125,19 @@ const start = async () => {
     },
   };
 
+  const sampleCreateTemplate: CreateTemplateRequest = {
+    Name: "Welcome Email",
+    Alias: "onboarding-v1",
+    HtmlBody: "<html><body>Hello{{name}}<body><html>",
+    TextBody: "Hello, {{name}}",
+    Subject: "Hello, from {{company.name}}",
+    TemplateType: TemplateTypes.Standard,
+  };
+
   try {
     //emailService.sendEmailWithoutTemplate(sampleSimpleEmail);
-    emailService.sendEmailWithTemplate(sampleTemplateEmail);
+    //emailService.sendEmailWithTemplate(sampleTemplateEmail);
+    //emailService.createTemplate(sampleCreateTemplate);
   } catch (e) {
     console.log(e);
   }

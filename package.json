@@ -9,6 +9,7 @@
     "clean": "rimraf lib/",
     "build": "npm run clean && tsc",
     "dev": "ts-node-dev --transpile-only --respawn --ignore-watch node_modules src/index.ts",
+    "dev:migrate": "ts-node-dev --transpile-only --respawn --ignore-watch node_modules src/migrate.ts",
     "lint": "tsc --noEmit && eslint . && npm run clean",
     "publish": "npm publish",
     "prepublish": "npm run clean && npm run build",
@@ -16,6 +17,7 @@
   },
   "dependencies": {
     "@hubspot/api-client": "^6.0.1",
+    "axios": "^0.27.2",
     "dotenv": "^16.0.1",
     "postmark": "^3.0.11",
     "rimraf": "^3.0.2"
