@@ -1,11 +1,5 @@
-var postmark = require("postmark");
+import { Client, Message, TemplatedMessage } from "postmark";
 import "dotenv/config";
-import { isGeneratorFunction } from "util/types";
-
-enum TypeSend {
-  SimpleEmail = 0,
-  TemplateEmail = 1,
-}
 
 type Config = {
   postmark: {
@@ -28,38 +22,31 @@ type TemplateEmail = Email & {
   templateAlias: string;
 };
 
-type PostmarkOptions = {
-  Type: TypeSend;
-  From: string;
-  To: string;
-  Subject?: string;
-  HtmlBody?: string;
-  TextBody?: string;
-  TemplateModel?: Object;
-  TemplateAlias?: string;
-};
-
 class EmailService {
-  private client: postmark.ServerClient;
+  private client: Client;
 
   constructor(private readonly config: Config) {
     if (!config.postmark.apiKey)
       throw new Error("Postmark API key is required");
-    this.client = new postmark.ServerClient(config.postmark.apiKey);
+    this.client = new Client(config.postmark.apiKey);
   }
 
   async sendEmailWithoutTemplate(email: SimpleEmail): Promise<void> {
     if (!email.from || !email.to || !email.subject || !email.html) {
       throw new Error("Email is not valid");
     }
-    const options: PostmarkOptions = {
-      Type: TypeSend.SimpleEmail,
+    const options: Message = {
       From: email.from,
       To: email.to,
       Subject: email.subject,
       HtmlBody: email.html,
     };
-    this.send(options);
+    this.client.sendEmail(options, (err, result) => {
+      if (err) {
+        console.error(err);
+      }
+      console.log(result);
+    });
   }
 
   async sendEmailWithTemplate(email: TemplateEmail): Promise<void> {
@@ -71,22 +58,13 @@ class EmailService {
     ) {
       throw new Error("Email is not valid");
     }
-    const options: PostmarkOptions = {
-      Type: TypeSend.TemplateEmail,
+    const options: TemplatedMessage = {
       From: email.from,
       To: email.to,
       TemplateAlias: email.templateAlias,
       TemplateModel: email.templateModel,
     };
-    this.send(options);
-  }
-
-  async send(options: PostmarkOptions): Promise<void> {
-    const methodName =
-      options.Type === TypeSend.SimpleEmail
-        ? "sendEmail"
-        : "sendEmailWithTemplate";
-    this.client[methodName](options, (err, result) => {
+    this.client.sendEmailWithTemplate(options, (err, result) => {
       if (err) {
         console.error(err);
       }
@@ -112,7 +90,7 @@ const start = async () => {
   };
 
   const sampleTemplateEmail: TemplateEmail = {
-    to: "felix.cezar@provi.com.br",
+    to: "diogo.cezar@provi.com.br",
     from: "felix@provi.com.br",
     templateAlias: "welcome",
     templateModel: {
